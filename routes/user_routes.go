@@ -9,4 +9,5 @@ import (
 func UserRoutes(e *echo.Echo) {
 	e.POST("/signup", controllers.Signup)
 	e.POST("/login", controllers.Login)
+	e.GET("/auto", controllers.AutoLogin)
 }

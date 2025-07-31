@@ -12,6 +12,7 @@ import (
 )
 
 var DB *gorm.DB
+var JwtSecret = "supersecretkey123" // <-- Add this line
 
 func ConnectDB() {
 	dsn := "postgresql://flipkart_clone_user:DdAKsuDfNeN52QCeudB76EJeL40kbsM0@dpg-d25f723e5dus73a1bh30-a.oregon-postgres.render.com/flipkart_clone"
@@ -40,10 +41,12 @@ func ConnectDB() {
 	if err != nil {
 		log.Fatal("❌ Auto migration failed:", err)
 	}
+
 	sqlDB, err := DB.DB()
 	if err != nil {
 		log.Fatal("❌ Failed to get sql.DB from GORM:", err)
 	}
+
 	sqlDB.SetMaxOpenConns(10)
 	sqlDB.SetMaxIdleConns(5)
 	sqlDB.SetConnMaxLifetime(time.Hour)
