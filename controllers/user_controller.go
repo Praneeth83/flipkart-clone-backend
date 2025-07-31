@@ -54,12 +54,8 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
 	}
 
-	if input.Role != "buyer" && input.Role != "seller" {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Role must be 'buyer' or 'seller'"})
-	}
-
 	var dbUser models.User
-	if err := config.DB.Where("email = ? AND role = ?", input.Email, input.Role).First(&dbUser).Error; err != nil {
+	if err := config.DB.Where("email = ?", input.Email).First(&dbUser).Error; err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid credentials"})
 	}
 
