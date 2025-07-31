@@ -11,5 +11,7 @@ func main() {
 	config.ConnectDB()
 	e := echo.New()
 	routes.UserRoutes(e)
+	routes.ProductRoutes(e)
+
 	e.Logger.Fatal(e.Start(":8081"))
 }
