@@ -38,19 +38,22 @@ func GetProductByID(c echo.Context) error {
 
 func UpdateProduct(c echo.Context) error {
 	id := c.Param("id")
+
 	var existing models.Product
 	if err := config.DB.First(&existing, id).Error; err != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "Product not found"})
 	}
-	var updateData models.Product
+
+	var updateData map[string]interface{}
 	if err := c.Bind(&updateData); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
 	}
-	updateData.ID = existing.ID
-	if err := config.DB.Save(&updateData).Error; err != nil {
+
+	if err := config.DB.Model(&existing).Updates(updateData).Error; err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to update product"})
 	}
-	return c.JSON(http.StatusOK, updateData)
+
+	return c.JSON(http.StatusOK, existing)
 }
 
 func DeleteProduct(c echo.Context) error {
