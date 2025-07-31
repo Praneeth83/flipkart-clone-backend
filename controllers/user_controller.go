@@ -20,8 +20,12 @@ func Signup(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
 	}
 
+	if user.Role != "buyer" && user.Role != "seller" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Role must be 'buyer' or 'seller'"})
+	}
+
 	var existing models.User
-	if err := config.DB.Where("email = ?", user.Email).First(&existing).Error; err == nil {
+	if err := config.DB.Where("email = ? AND role = ?", user.Email, user.Role).First(&existing).Error; err == nil {
 		return c.JSON(http.StatusConflict, echo.Map{"error": "User already exists"})
 	}
 
@@ -32,7 +36,16 @@ func Signup(c echo.Context) error {
 	user.Password = string(hashed)
 
 	config.DB.Create(&user)
-	return c.JSON(http.StatusCreated, echo.Map{"message": "Signup successful", "user": user})
+
+	return c.JSON(http.StatusCreated, echo.Map{
+		"message": "Signup successful",
+		"user": echo.Map{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"role":  user.Role,
+		},
+	})
 }
 
 func Login(c echo.Context) error {
@@ -41,8 +54,12 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid input"})
 	}
 
+	if input.Role != "buyer" && input.Role != "seller" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Role must be 'buyer' or 'seller'"})
+	}
+
 	var dbUser models.User
-	if err := config.DB.Where("email = ?", input.Email).First(&dbUser).Error; err != nil {
+	if err := config.DB.Where("email = ? AND role = ?", input.Email, input.Role).First(&dbUser).Error; err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid credentials"})
 	}
 
@@ -53,6 +70,7 @@ func Login(c echo.Context) error {
 	claims := jwt.MapClaims{
 		"user_id": dbUser.ID,
 		"email":   dbUser.Email,
+		"role":    dbUser.Role,
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -64,7 +82,12 @@ func Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{
 		"message": "Login successful",
 		"token":   signedToken,
-		"user":    dbUser,
+		"user": echo.Map{
+			"id":    dbUser.ID,
+			"name":  dbUser.Name,
+			"email": dbUser.Email,
+			"role":  dbUser.Role,
+		},
 	})
 }
 
@@ -89,11 +112,19 @@ func AutoLogin(c echo.Context) error {
 
 	claims := token.Claims.(jwt.MapClaims)
 	email := claims["email"].(string)
+	role := claims["role"].(string)
 
 	var user models.User
-	if err := config.DB.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := config.DB.Where("email = ? AND role = ?", email, role).First(&user).Error; err != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{"error": "User not found"})
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"user": user})
+	return c.JSON(http.StatusOK, echo.Map{
+		"user": echo.Map{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"role":  user.Role,
+		},
+	})
 }
