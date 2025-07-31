@@ -10,6 +10,6 @@ func ProductRoutes(e *echo.Echo) {
 	e.POST("/products", controllers.CreateProduct)
 	e.GET("/products", controllers.GetAllProducts)
 	e.GET("/products/:id", controllers.GetProductByID)
-	e.PUT("/products/:id", controllers.UpdateProduct)
+	e.PATCH("/products/:id", controllers.UpdateProduct)
 	e.DELETE("/products/:id", controllers.DeleteProduct)
 }
